@@ -78,6 +78,7 @@ export class ObjectPool extends Component {
                 break;
 
             case PoolExhaustedBehavior.FailSilently:
+                console.warn("Pool is empty");
                 break;
         }
 
