@@ -3,6 +3,10 @@ const { ccclass, property } = _decorator;
 import { CardData } from './CardData';
 import { CardAsset } from './CardAsset';
 
+import { EventManager } from './Managers/EventManager';
+import { GameEvent } from './enums/GameEvent';
+import { SFXID } from './AudioSystem/SFXEnums';
+
 @ccclass('Card')
 export class Card extends Component {
     cardSprite: Sprite = null;
@@ -50,6 +54,7 @@ export class Card extends Component {
         // Flip from front to back
         const cardScale = this.node.scale.clone();
         console.log('Flipping card:', this.getName(), 'Is face down:', this.cardData.isFaceDown);
+        EventManager.instance.gameEvents.emit(GameEvent.PLAY_SFX, SFXID.CardFlip, this);
         await new Promise<void>((resolve) => {
             tween(this.node)
                 .to(0.2, { scale: new Vec3(0, cardScale.y, cardScale.z) }) // Shrink to edge
@@ -65,8 +70,8 @@ export class Card extends Component {
                 .call(() => {
                     this.isFaceDown = !this.isFaceDown;
                     console.log('Card flipped:', this.getName(), 'Is face down now:', this.isFaceDown);
-                    resolve();
                 })
+                .call(resolve)
                 .start();
         });
     }

@@ -1,8 +1,10 @@
-import { _decorator, Component, AudioSource, AudioClip, Node, Prefab, instantiate } from 'cc';
+import { _decorator, Component, AudioSource, Prefab, instantiate } from 'cc';
 const { ccclass, property } = _decorator;
 
 import { SFXID, SFXGroup } from "./SFXEnums";
 import { SFXEntry } from "./SFXEntry";
+import { EventManager } from '../Managers/EventManager';
+import { GameEvent } from '../enums/GameEvent';
 
 @ccclass('SFXManager')
 export class SFXManager extends Component {
@@ -36,6 +38,14 @@ export class SFXManager extends Component {
               this.groupVolumes.set(entry.group, 1.0);
             }
         }
+    }
+
+    start() {
+        EventManager.instance.gameEvents.on(GameEvent.PLAY_SFX, this.playSFXByID, this);
+    }
+
+    protected onDestroy(): void {
+        EventManager.instance.gameEvents.off(GameEvent.PLAY_SFX, this.playSFXByID, this);
     }
 
     public playSFXByID(id: SFXID) {

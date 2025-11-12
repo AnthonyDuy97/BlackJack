@@ -1,11 +1,18 @@
 export enum GameEvent {
+    CHIP_ENTRY_READY, 'chip-entry-ready',
+    CHIP_SELECTED, 'chip-selected',
+    ADD_CHIP_UI, 'add-chip-ui',
+    UPDATE_BET_VALUE, 'add-bet-value',
     DECK_LOADED = 'deck-loaded',
     DEAL_CARD = 'deal-card',
     ANIMATION_FINISHED = 'animation-finished',
+    SPLIT_HAND = 'split-hand',
+    CHANGE_HAND = 'change-hand',
     DEALER_TURN_END = 'dealer-turn-end',
     GAME_STARTED = 'game-started',
     GAME_ENDED = 'game-ended',
     GAME_RESET = 'game-reset',
     LOCK_INPUT = 'lock-input',
     UNLOCK_INPUT = 'unlock-input',
+    PLAY_SFX = 'play-sfx',
 }

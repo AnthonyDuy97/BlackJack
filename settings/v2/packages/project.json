@@ -1,0 +1,18 @@
+{
+  "general": {
+    "designResolution": {
+      "width": 1280,
+      "height": 720
+    }
+  },
+  "layer": [
+    {
+      "name": "POPUP_MASK",
+      "value": 524288
+    },
+    {
+      "name": "POPUP",
+      "value": 262144
+    }
+  ]
+}

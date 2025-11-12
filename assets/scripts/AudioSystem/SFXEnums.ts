@@ -1,7 +1,9 @@
 export enum SFXID {
     ButtonClick,
     CoinDrop,
+    CardDeal,
     CardFlip,
+    Chip,
     // Add more as needed
 }
 

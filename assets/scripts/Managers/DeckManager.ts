@@ -1,4 +1,4 @@
-import { _decorator, Component, JsonAsset, Node, resources, SpriteFrame, Prefab, instantiate } from 'cc';
+import { _decorator, Component, JsonAsset, Node, resources, SpriteFrame, SpriteAtlas, instantiate } from 'cc';
 const { ccclass, property } = _decorator;
 import { CardData } from '../CardData';
 import { CardAsset } from '../CardAsset';
@@ -30,7 +30,8 @@ export class DeckManager extends Component {
                 return;
             }
             this.loadedCardData = asset.json as CardData[];
-            this.loadSprites();
+            // this.loadSprites();
+            this.loadSpriteFromAtlas();
         });
     }
 
@@ -63,6 +64,35 @@ export class DeckManager extends Component {
                 else resolve(spriteFrame);
             });
         });
+    }
+
+    private loadSpriteAtlas(): Promise<SpriteAtlas> {
+        return new Promise((resolve, reject) => {
+            resources.load('Cards/card', SpriteAtlas, (err, atlas) => {
+                if (err) {
+                    console.error('Atlas load error:', err);
+                    reject(err);
+                } else {
+                    console.log('Atlas load success');
+                    resolve(atlas);
+                }
+            });
+        });
+    }
+
+    async loadSpriteFromAtlas() {
+        const atlas = await this.loadSpriteAtlas();
+        this.loadedCardData.forEach(card => {
+            const frame = atlas.getSpriteFrame(card.sprite);
+            if (frame) {
+                card.spriteFrame = frame;
+            } else {
+                console.error('Failed to load spriteFrame:' + card.sprite);
+            }
+        })
+        CardAsset.backSpriteFrame = atlas.getSpriteFrame('BACK_1');
+        this.cardDeck = new Deck(this.loadedCardData, 2);
+        EventManager.instance.gameEvents.emit(GameEvent.DECK_LOADED);
     }
 
     public dealCard(): CardData | null {

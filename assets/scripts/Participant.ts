@@ -1,7 +1,7 @@
 import { CardData } from './CardData';
 
 export class Participant {
-    private hand: CardData[] = [];
+    protected hand: CardData[] = [];
 
     public revealAll: boolean = false;
 
