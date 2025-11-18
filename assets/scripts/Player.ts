@@ -2,21 +2,25 @@ import { Participant } from './Participant';
 import { CardData } from './CardData';
 
 export class Player extends Participant {
-    private name: string;
     private index: number;
 
-    constructor(name: string, index: number) {
-        super();
-        this.name = name;
-        this.index = index;
-    }
+    private isDoubling: boolean = false;
 
-    public getName(): string {
-        return this.name;
+    constructor(index: number) {
+        super();
+        this.index = index;
     }
 
     public getIndex(): number {
         return this.index;
+    }
+
+    public doublingDown() {
+        this.isDoubling = true;
+    }
+
+    public isDoublingDown(): boolean {
+        return this.isDoubling;
     }
 
     public canSplit(): boolean {

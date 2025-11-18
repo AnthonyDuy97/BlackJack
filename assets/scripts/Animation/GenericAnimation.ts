@@ -8,7 +8,7 @@ export class GenericAnimation extends Component {
     private screenSize = view.getVisibleSize();
 
     @property
-    animationDuration: number = 0.75;
+    animationDuration: number = 1.25;
 
     @property({ type: Enum(AnimationType) })
     entryAnimationType: AnimationType = AnimationType.FlyTop;
@@ -42,7 +42,7 @@ export class GenericAnimation extends Component {
             case AnimationType.FlyBottom:
                 this.node.setPosition(new Vec3(0, -this.screenSize.height, 0));
                 tween(this.node)
-                    .to(this.animationDuration, { position: this.onscreenTarget })
+                    .to(this.animationDuration, { position: this.onscreenTarget }, { easing: 'backOut' })
                     .call(() => onComplete?.())
                     .start();
                 
@@ -51,7 +51,7 @@ export class GenericAnimation extends Component {
             case AnimationType.FlyTop:
                 this.node.setPosition(new Vec3(0, this.screenSize.height, 0));
                 tween(this.node)
-                    .to(this.animationDuration, { position: this.onscreenTarget })
+                    .to(this.animationDuration, { position: this.onscreenTarget }, { easing: 'backOut' })
                     .call(() => onComplete?.())
                     .start();
                 
@@ -60,7 +60,7 @@ export class GenericAnimation extends Component {
             case AnimationType.FlyLeft:
                 this.node.setPosition(new Vec3(-this.screenSize.width, 0, 0));
                 tween(this.node)
-                    .to(this.animationDuration, { position: this.onscreenTarget })
+                    .to(this.animationDuration, { position: this.onscreenTarget }, { easing: 'backOut' })
                     .call(() => onComplete?.())
                     .start();
 
@@ -69,7 +69,7 @@ export class GenericAnimation extends Component {
             case AnimationType.FlyRight:
                 this.node.setPosition(new Vec3(this.screenSize.width, 0, 0));
                 tween(this.node)
-                    .to(this.animationDuration, { position: this.onscreenTarget })
+                    .to(this.animationDuration, { position: this.onscreenTarget }, { easing: 'backOut' })
                     .call(() => onComplete?.())
                     .start();
 
@@ -78,7 +78,7 @@ export class GenericAnimation extends Component {
             case AnimationType.Scale:
                 this.node.setScale(new Vec3(0, 0, 1));
                 tween(this.node)
-                    .to(this.animationDuration, { scale: new Vec3(1, 1, 1) })
+                    .to(this.animationDuration, { scale: new Vec3(1, 1, 1) }, { easing: 'backOut' })
                     .call(() => onComplete?.())
                     .start();
                     
@@ -88,10 +88,11 @@ export class GenericAnimation extends Component {
                 const uiOpacity = this.node.getComponent(UIOpacity);
                 uiOpacity.opacity = 0;
                 tween(uiOpacity)
-                    .to(this.animationDuration, { opacity: this.initialOpacity })
+                    .to(this.animationDuration, { opacity: this.initialOpacity }, { easing: 'backOut' })
+                    .call(() => onComplete?.())
                     .start();
 
-                
+                break;
         }
         this.isShown = true;
     }
@@ -101,7 +102,7 @@ export class GenericAnimation extends Component {
             case AnimationType.FlyBottom:
                 this.node.setPosition(this.onscreenTarget);
                 tween(this.node)
-                    .to(this.animationDuration, { position: new Vec3(0, -this.screenSize.height, 0) })
+                    .to(this.animationDuration, { position: new Vec3(0, -this.screenSize.height, 0) }, { easing: 'backIn' })
                     .call(() => {
                         onComplete?.();
                         this.node.active = false;
@@ -113,7 +114,7 @@ export class GenericAnimation extends Component {
             case AnimationType.FlyTop:
                 this.node.setPosition(this.onscreenTarget);
                 tween(this.node)
-                    .to(this.animationDuration, { position: new Vec3(0, this.screenSize.height, 0) })
+                    .to(this.animationDuration, { position: new Vec3(0, this.screenSize.height, 0) }, { easing: 'backIn' })
                     .call(() => {
                         onComplete?.();
                         this.node.active = false;
@@ -125,7 +126,7 @@ export class GenericAnimation extends Component {
             case AnimationType.FlyLeft:
                 this.node.setPosition(this.onscreenTarget);
                 tween(this.node)
-                    .to(this.animationDuration, { position: new Vec3(-this.screenSize.width, 0, 0) })
+                    .to(this.animationDuration, { position: new Vec3(-this.screenSize.width, 0, 0) }, { easing: 'backIn' })
                     .call(() => {
                         onComplete?.();
                         this.node.active = false;
@@ -137,7 +138,7 @@ export class GenericAnimation extends Component {
             case AnimationType.FlyRight:
                 this.node.setPosition(this.onscreenTarget);
                 tween(this.node)
-                    .to(this.animationDuration, { position: new Vec3(this.screenSize.width, 0, 0) })
+                    .to(this.animationDuration, { position: new Vec3(this.screenSize.width, 0, 0) }, { easing: 'backIn' })
                     .call(() => {
                         onComplete?.();
                         this.node.active = false;
@@ -149,7 +150,7 @@ export class GenericAnimation extends Component {
             case AnimationType.Scale:
                 this.node.setScale(new Vec3(1, 1, 1));
                 tween(this.node)
-                    .to(this.animationDuration, { scale: new Vec3(0, 0, 1) })
+                    .to(this.animationDuration, { scale: new Vec3(0, 0, 1) }, { easing: 'backIn' })
                     .call(() => {
                         onComplete?.();
                         this.node.active = false;
@@ -162,7 +163,7 @@ export class GenericAnimation extends Component {
                 const uiOpacity = this.node.getComponent(UIOpacity);
                 uiOpacity.opacity = this.initialOpacity;
                 tween(uiOpacity)
-                    .to(this.animationDuration, { opacity: 0 })
+                    .to(this.animationDuration, { opacity: 0 }, { easing: 'backIn' })
                     .call(() => {
                         onComplete?.();
                         this.node.active = false;

@@ -1,4 +1,4 @@
-import { _decorator, Component, AudioSource, Prefab, instantiate } from 'cc';
+import { _decorator, Component, AudioSource, Prefab, instantiate, Toggle } from 'cc';
 const { ccclass, property } = _decorator;
 
 import { SFXID, SFXGroup } from "./SFXEnums";
@@ -67,5 +67,20 @@ export class SFXManager extends Component {
 
     public muteGroup(group: SFXGroup) {
         this.setGroupVolume(group, 0);
+    }
+
+    public SFXToggleChecked(toggle: Toggle) {
+        if (toggle.isChecked) {
+            console.log('Unmute SFX');
+            this.setGroupVolume(SFXGroup.UI, 1.0);
+            this.setGroupVolume(SFXGroup.Gameplay, 1.0);
+            this.setGroupVolume(SFXGroup.Ambient, 1.0);
+        } else {
+            console.log('Mute SFX');
+            this.muteGroup(SFXGroup.UI);
+            this.muteGroup(SFXGroup.Gameplay);
+            this.muteGroup(SFXGroup.Ambient);
+        }
+        this.playSFXByID(SFXID.ButtonClick);
     }
 }

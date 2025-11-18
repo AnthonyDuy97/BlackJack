@@ -1,4 +1,4 @@
-import { _decorator, Button, Component, Node, Sprite } from 'cc';
+import { _decorator, Button, Component, Node, Sprite, Label } from 'cc';
 import { EventManager } from './EventManager';
 import { GameEvent } from '../enums/GameEvent';
 
@@ -99,7 +99,6 @@ export class UIManager extends Component {
         this.doubleButton.node.active = true;
         this.splitButton.node.active = true;
 
-        // await AsyncUtils.
         if (player.canSplit()) {
             this.splitButton.interactable = true;
         } else {
@@ -185,6 +184,10 @@ export class UIManager extends Component {
         let entryAnims = [AnimationType.Fade, AnimationType.FlyTop];
         let exitAnims = [AnimationType.Fade, AnimationType.FlyTop];
         this.popup.show('Rules', popupPages, rulePopupBtns, entryAnims, exitAnims);
+    }
+
+    public toggleSFX() {
+        EventManager.instance.gameEvents.emit(GameEvent.PLAY_SFX, SFXID.ButtonClick);
     }
 }
 

@@ -92,7 +92,7 @@ export class BetUIManager extends Component {
             chipNode.setPosition(0, 0);
         }
 
-        this.maxBet.string = "Max bet $" + maxBet;
+        this.maxBet.string = "(Max bet $" + maxBet + ")";
     }
 
     private addChip(chipEntry: ChipEntry) {
