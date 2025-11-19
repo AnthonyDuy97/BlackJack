@@ -1,4 +1,3 @@
-import { CardData } from './CardData';
 import { EventManager } from './Managers/EventManager';
 import { GameEvent } from './enums/GameEvent';
 

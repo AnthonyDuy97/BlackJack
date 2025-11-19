@@ -1,4 +1,4 @@
-import { _decorator, Component, CCInteger, Game } from 'cc';
+import { _decorator, Component, CCInteger } from 'cc';
 const { ccclass, property } = _decorator;
 import { ChipEntry } from '../Chip/ChipEntry';
 import { EventManager } from './EventManager';
@@ -7,7 +7,6 @@ import { GameResult } from '../enums/GameResult';
 import { Player } from '../Player';
 
 import { SFXID } from '../AudioSystem/SFXEnums';
-import { BetUIManager } from './BetUIManager';
 
 @ccclass('BetManager')
 export class BetManager extends Component {
@@ -61,6 +60,7 @@ export class BetManager extends Component {
     }
 
     private placeBet() {
+        console.log('Bet placed');
         EventManager.instance.gameEvents.emit(GameEvent.BET_PLACED, -this.currentBet, this);
     }
 

@@ -20,4 +20,5 @@ export enum GameEvent {
     LOCK_INPUT = 'lock-input',
     UNLOCK_INPUT = 'unlock-input',
     PLAY_SFX = 'play-sfx',
+    SAVE_GAME_LOG = 'save-game-log'
 }

@@ -9,6 +9,14 @@ export class Participant {
         return this.hand;
     }
 
+    public handToString(): string {
+        let cardStrArr = [];
+        this.hand.forEach(card => {
+            cardStrArr.push(card.rank+card.suit);
+        })
+        return cardStrArr.join(' ');
+    }
+
     public isBusted(): boolean {
         return this.getHandValue() > 21;
     }

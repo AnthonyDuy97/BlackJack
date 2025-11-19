@@ -52,6 +52,7 @@ export class GenericPopup extends Component {
         this.prevPageBtn.node.active = false;
 
         this.titleText.string = title;
+        this.popupPages = [];
         if (typeof content === 'string') {
             this.messageText.string = content;
         } else if (Array.isArray(content) && content.every(p => p instanceof PopupPage)) {

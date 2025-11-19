@@ -73,7 +73,6 @@ export class GameManager extends Component {
         console.log('Animation finished for:', participant instanceof Player ? 'Player' : 'Dealer');
         if (this.gameState === GameState.InitialDeal && participant instanceof Player) {
             this.changeGameState(GameState.PlayerTurn);
-            // EventManager.instance.gameEvents.emit(GameEvent.GAME_STARTED, this.players[this.currentHandIndex]);
 
             // Check for immediate blackjack
             if (this.players[this.currentHandIndex].hasBlackjack() || this.dealer.hasBlackjack()) {
@@ -104,7 +103,7 @@ export class GameManager extends Component {
             this.players.forEach(player => {
                 results.push(this.determineWinner(player.getIndex()));
             });
-            EventManager.instance.gameEvents.emit(GameEvent.GAME_ENDED, results, this.players);
+            EventManager.instance.gameEvents.emit(GameEvent.GAME_ENDED, results, this.players, this.dealer);
         }
 
         EventManager.instance.gameEvents.emit(GameEvent.UNLOCK_INPUT);
