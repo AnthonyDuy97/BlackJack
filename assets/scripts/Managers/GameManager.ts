@@ -19,34 +19,34 @@ export class GameManager extends Component {
 
     private playerDatas: PlayerData[] = [];
 
-    private myPlayerID = 1;
+    private myPlayerID = 2;
 
-    private players: Map<number, Player[]> = new Map<number, Player[]>;
+    private players: Map<number, Player[]> = new Map<number, Player[]>();
 
     private playersThisTurn: Map<number, Player[]>;
-    private currentPlayer: Player[] = [];
+    private currentPlayerID: number;
+    private currentPlayerHands: Player[] = [];
     private dealer = new Dealer();
 
     private gameState: GameState = GameState.BetPhase;
 
     private currentHandIndex = 0;
 
-    private phaseTimer: number = 30;
+    private phaseTimer: number = 10;
 
     start() {
         EventManager.instance.gameEvents.on(GameEvent.DECK_LOADED, this.onDeckLoaded, this);
         EventManager.instance.gameEvents.on(GameEvent.ANIMATION_FINISHED, this.onAnimationFinished, this);
         EventManager.instance.gameEvents.emit(GameEvent.GAMESTATE_CHANGED, this.gameState);
 
+        this.playerDatas.push(new PlayerData(1, 1000));
         this.playerDatas.push(new PlayerData(this.myPlayerID, 1000));
-        // this.playerDatas.push(new PlayerData(2, 1000));
+        this.playerDatas.push(new PlayerData(3, 1000));
         this.playerDatas.forEach(playerData => {
             const player = [new Player(0, playerData.getID())]; 
             this.players.set(playerData.getID(), player);
         });
         this.playersThisTurn = new Map(this.players);
-
-        this.startPhaseTimer();
     }
 
     protected onDestroy(): void {
@@ -59,13 +59,24 @@ export class GameManager extends Component {
         console.log('Game started with deck:', deck);
     }
 
-    private getNextPlayer(): Player[] {
+    private getNextPlayerHands(): Player[] {
         for (const [playerID, player] of this.playersThisTurn) {
             if (player.length > 0) {
                 this.currentHandIndex = 0;
+                console.log("Current player is: " + playerID);
+                this.currentPlayerID = playerID;
+                EventManager.instance.gameEvents.emit(GameEvent.PLAYER_TURN_CHANGED, playerID, this);
+                if (this.currentPlayerID !== this.myPlayerID) {
+                    this.startPhaseTimer();
+                    EventManager.instance.gameEvents.emit(GameEvent.LOCK_INPUT);
+                } else {
+                    this.startMyTurn();
+                }
                 return player;
             }
         }
+        // All players have played
+        this.changeGameState(GameState.PlayerTurnEnd);
     }
 
     public initialDeal() {
@@ -73,6 +84,7 @@ export class GameManager extends Component {
         EventManager.instance.gameEvents.emit(GameEvent.LOCK_INPUT);
         for (let i = 0; i < 2; i++) {
             this.playerDatas.forEach(playerData => {
+                EventManager.instance.gameEvents.emit(GameEvent.PLAYER_TURN_CHANGED, playerData.getID(), this);
                 const playerCardData = this.deckManager.dealCard();
                 if (playerCardData) {
                     this.playersThisTurn.get(playerData.getID())[this.currentHandIndex].addCard(playerCardData);
@@ -85,6 +97,7 @@ export class GameManager extends Component {
             if (dealerCardData) {
                 this.dealer.addCard(dealerCardData);
             }
+            EventManager.instance.gameEvents.emit(GameEvent.PLAYER_TURN_CHANGED, this.myPlayerID, this);
             EventManager.instance.gameEvents.emit(GameEvent.DEAL_CARD, this.dealer);
         }
     }
@@ -92,32 +105,47 @@ export class GameManager extends Component {
     private checkForInsurance() {
         if (this.dealer.hasAceFaceUp()) {
             this.changeGameState(GameState.InsuranceOffer);
-            EventManager.instance.gameEvents.emit(GameEvent.OFFER_INSURANCE, () => this.startGame());
+            EventManager.instance.gameEvents.emit(GameEvent.OFFER_INSURANCE, (accept: boolean) => {
+                this.insuranceResponse(accept);
+            });
+            this.startPhaseTimer();
         } else {
             this.startGame();
         }
     }
-    
+
+    private insuranceResponse(accept: boolean) {
+        // Sending response to insurance offer to server
+        
+        // For now just wait until the phase timer run out
+        // or use the main player's decision
+        this.startGame();
+    }
+
     private startGame() {
-        EventManager.instance.gameEvents.emit(GameEvent.GAME_STARTED, this.currentPlayer[this.currentHandIndex]);
         this.changeGameState(GameState.PlayerTurn);
+        this.currentPlayerHands = this.getNextPlayerHands();
+    }
+
+    private startMyTurn() {
+        EventManager.instance.gameEvents.emit(GameEvent.GAME_STARTED, this.currentPlayerHands[this.currentHandIndex]);
         // Check for immediate blackjack
-        if (this.currentPlayer[this.currentHandIndex].hasBlackjack() || this.dealer.hasBlackjack()) {
+        if (this.currentPlayerHands[this.currentHandIndex].hasBlackjack() || this.dealer.hasBlackjack()) {
             this.dealer.revealAll = true;
             this.endGame();
         }
     }
     
-    public onAnimationFinished() {
+    private onAnimationFinished() {
         if (this.gameState === GameState.InitialDeal) {
-            this.currentPlayer = this.getNextPlayer();
             this.checkForInsurance();
         }
 
+        EventManager.instance.gameEvents.emit(GameEvent.UNLOCK_INPUT);
         if (this.gameState === GameState.PlayerTurn) {
-            if (this.currentPlayer[this.currentHandIndex].isBusted()) {
-                if ((this.currentHandIndex + 1) == this.currentPlayer.length) {
-                    this.dealerPlay();
+            if (this.currentPlayerID == this.myPlayerID && this.currentPlayerHands[this.currentHandIndex].isBusted()) {
+                if ((this.currentHandIndex + 1) == this.currentPlayerHands.length) {
+                    this.playerTurnEnd();
                 } else {
                     this.currentHandIndex++;
                     EventManager.instance.gameEvents.emit(GameEvent.CHANGE_HAND, this.currentHandIndex);
@@ -129,42 +157,35 @@ export class GameManager extends Component {
             if (this.playersThisTurn.size <= 0) {
                 this.dealer.revealAll = true;
                 this.dealerPlay();
-            } else {
-                this.playersThisTurn.delete(this.currentPlayer[this.currentHandIndex].getPlayerID());
-                this.currentPlayer = this.getNextPlayer();
-                console.log('Current Player: '+ this.currentPlayer);
             }
         }
 
-        if (this.gameState === GameState.DealerTurnEnd) {
-            this.changeGameState(GameState.GameEnd);
-            const results = [];
-            this.players.forEach(currentPlayer => {
-                currentPlayer.forEach(player => {
-                    results.push(this.determineWinner(player.getIndex()));
-                });
-                EventManager.instance.gameEvents.emit(GameEvent.GAME_ENDED, results, currentPlayer, this.dealer);
-            });
+        if (this.gameState === GameState.DealerTurn) {
+            this.endGame();
         }
 
-        EventManager.instance.gameEvents.emit(GameEvent.UNLOCK_INPUT);
+        if (this.gameState === GameState.DealerTurnEnd) {
+            this.determineWinner();
+        }
+
     }
 
     public playerHit() {
+        this.startPhaseTimer();
         EventManager.instance.gameEvents.emit(GameEvent.LOCK_INPUT);
         const cardData = this.deckManager.dealCard();
         if (cardData) {
-            this.currentPlayer[this.currentHandIndex].addCard(cardData);
-            console.log('Hand ' + this.currentHandIndex + ' count: ' + this.currentPlayer[this.currentHandIndex].getHand().length);
-            EventManager.instance.gameEvents.emit(GameEvent.DEAL_CARD, this.currentPlayer[this.currentHandIndex]);
+            this.currentPlayerHands[this.currentHandIndex].addCard(cardData);
+            // console.log('Hand ' + this.currentHandIndex + ' count: ' + this.currentPlayerHands[this.currentHandIndex].getHand().length);
+            EventManager.instance.gameEvents.emit(GameEvent.DEAL_CARD, this.currentPlayerHands[this.currentHandIndex]);
         }
     }
 
     public playerStand() {
         EventManager.instance.gameEvents.emit(GameEvent.LOCK_INPUT);
-        console.log('Player stands with hand:', this.currentPlayer[this.currentHandIndex].getHand());
-        if ((this.currentHandIndex + 1) == this.currentPlayer.length) {
-            this.dealerPlay();
+        console.log('Player stands with hand:', this.currentPlayerHands[this.currentHandIndex].getHand());
+        if ((this.currentHandIndex + 1) == this.currentPlayerHands.length) {
+            this.playerTurnEnd();
         } else {
             this.currentHandIndex++;
             EventManager.instance.gameEvents.emit(GameEvent.CHANGE_HAND, this.currentHandIndex);
@@ -176,38 +197,48 @@ export class GameManager extends Component {
         EventManager.instance.gameEvents.emit(GameEvent.LOCK_INPUT);
         const cardData = this.deckManager.dealCard();
         if (cardData) {
-            this.currentPlayer[this.currentHandIndex].addCard(cardData);
-            EventManager.instance.gameEvents.emit(GameEvent.DEAL_CARD, this.currentPlayer[this.currentHandIndex]);
+            this.currentPlayerHands[this.currentHandIndex].addCard(cardData);
+            EventManager.instance.gameEvents.emit(GameEvent.DEAL_CARD, this.currentPlayerHands[this.currentHandIndex]);
         }
-        if ((this.currentHandIndex + 1) == this.currentPlayer.length) {
-            this.changeGameState(GameState.PlayerTurnEnd);
+        if ((this.currentHandIndex + 1) == this.currentPlayerHands.length) {
+            this.playerTurnEnd();
         } else {
             this.currentHandIndex++;
             EventManager.instance.gameEvents.emit(GameEvent.CHANGE_HAND, this.currentHandIndex);
         }
 
-        this.currentPlayer[this.currentHandIndex].doublingDown();
+        this.currentPlayerHands[this.currentHandIndex].doublingDown();
     }
 
     public playerSplit() {
-        if (!this.currentPlayer[this.currentHandIndex].canSplit()) {
+        if (!this.currentPlayerHands[this.currentHandIndex].canSplit()) {
             return;
         }
-        let currentHand = this.currentPlayer[this.currentHandIndex];
+        let currentHand = this.currentPlayerHands[this.currentHandIndex];
         const splitCard = currentHand.splitHand();
 
         let newHand = new Player(this.currentHandIndex + 1, currentHand.getPlayerID());
         newHand.addCard(splitCard);
-        this.currentPlayer.push(newHand);
-        EventManager.instance.gameEvents.emit(GameEvent.SPLIT_HAND);
+        this.currentPlayerHands.push(newHand);
+        let playerCardData = this.deckManager.dealCard();
+        if (playerCardData) {
+            currentHand.addCard(playerCardData);
+        }
+
+        playerCardData = this.deckManager.dealCard();
+        if (playerCardData) {
+            newHand.addCard(playerCardData);
+        }
+        EventManager.instance.gameEvents.emit(GameEvent.SPLIT_HAND, this.currentPlayerHands);
     }
 
     public dealerPlay() {
         EventManager.instance.gameEvents.emit(GameEvent.LOCK_INPUT);
         this.changeGameState(GameState.DealerTurn);
-        if (this.currentPlayer.every(player => player.isBusted())) {
-            console.log('All player\'s hands are busted');
-            this.endGame();
+        EventManager.instance.gameEvents.emit(GameEvent.PLAYER_TURN_CHANGED, this.myPlayerID, this);
+        if (this.areAllPlayersBusted()) {
+            console.log('All players\' hands are busted');
+            this.determineWinner();
         };
         while (this.dealer.shouldHit()) {
             const cardData = this.deckManager.dealCard();
@@ -221,45 +252,57 @@ export class GameManager extends Component {
         this.endGame();
     }
 
-    private determineWinner(index: number): GameResult {
-        const player = this.currentPlayer[index];
-        const playerValue = player.getHandValue();
-        const dealerValue = this.dealer.getHandValue();
-
-        let result;
-        if (player.hasBlackjack() && this.dealer.hasBlackjack()) {
-            // result = 'It\'s a tie with both having Blackjack!';
-            result = GameResult.Draw;
-        } else if (player.hasBlackjack()) {
-            // result = 'Player wins with Blackjack!';
-            result = GameResult.WinBlackJack;
-            EventManager.instance.gameEvents.emit(GameEvent.PLAY_SFX, SFXID.Win, this);
-        } else if (this.dealer.hasBlackjack()) {
-            // result = 'Dealer wins with Blackjack!';
-            result = GameResult.Lose;
-            EventManager.instance.gameEvents.emit(GameEvent.PLAY_SFX, SFXID.Lose, this);
-        } else if (player.isBusted()) {
-            // result = 'Dealer wins! Player busted.';
-            result = GameResult.Lose;
-            EventManager.instance.gameEvents.emit(GameEvent.PLAY_SFX, SFXID.Lose, this);
-        } else if (this.dealer.isBusted()) {
-            // result = 'Player wins! Dealer busted.';
-            result = GameResult.Win;
-            EventManager.instance.gameEvents.emit(GameEvent.PLAY_SFX, SFXID.Win, this);
-        } else if (playerValue > dealerValue) {
-            // result = 'Player wins!';
-            result = GameResult.Win;
-            EventManager.instance.gameEvents.emit(GameEvent.PLAY_SFX, SFXID.Win, this);
-        } else if (dealerValue > playerValue) {
-            // result = 'Dealer wins!';
-            result = GameResult.Lose;
-            EventManager.instance.gameEvents.emit(GameEvent.PLAY_SFX, SFXID.Lose, this);
-        } else {
-            // result = 'It\'s a tie!';
-            result = GameResult.Draw;
-        }
+    private determineWinner() {
+        this.changeGameState(GameState.GameEnd);
+        const results = [];
+        const currentPlayer = this.players.get(this.myPlayerID);
+        currentPlayer.forEach(player => {
+            const playerValue = player.getHandValue();
+            const dealerValue = this.dealer.getHandValue();
         
-        return result;
+            let result = GameResult.Draw;
+            if (player.hasBlackjack() && this.dealer.hasBlackjack()) {
+                // result = 'It\'s a tie with both having Blackjack!';
+                result = GameResult.Draw;
+            } else if (player.hasBlackjack()) {
+                // result = 'Player wins with Blackjack!';
+                result = GameResult.WinBlackJack;
+                EventManager.instance.gameEvents.emit(GameEvent.PLAY_SFX, SFXID.Win, this);
+            } else if (this.dealer.hasBlackjack()) {
+                // result = 'Dealer wins with Blackjack!';
+                result = GameResult.Lose;
+                EventManager.instance.gameEvents.emit(GameEvent.PLAY_SFX, SFXID.Lose, this);
+            } else if (player.isBusted()) {
+                // result = 'Dealer wins! Player busted.';
+                result = GameResult.Lose;
+                EventManager.instance.gameEvents.emit(GameEvent.PLAY_SFX, SFXID.Lose, this);
+            } else if (this.dealer.isBusted()) {
+                // result = 'Player wins! Dealer busted.';
+                result = GameResult.Win;
+                EventManager.instance.gameEvents.emit(GameEvent.PLAY_SFX, SFXID.Win, this);
+            } else if (playerValue > dealerValue) {
+                // result = 'Player wins!';
+                result = GameResult.Win;
+                EventManager.instance.gameEvents.emit(GameEvent.PLAY_SFX, SFXID.Win, this);
+            } else if (dealerValue > playerValue) {
+                // result = 'Dealer wins!';
+                result = GameResult.Lose;
+                EventManager.instance.gameEvents.emit(GameEvent.PLAY_SFX, SFXID.Lose, this);
+            }
+            results.push(result);
+        });
+        EventManager.instance.gameEvents.emit(GameEvent.GAME_ENDED, results, currentPlayer, this.dealer);
+    }
+
+    private areAllPlayersBusted(): boolean {
+        for (const [playerID, hands] of this.players) {
+            for (const hand of hands) {
+                if (!hand.isBusted()) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
     
     private endGame() {
@@ -268,10 +311,13 @@ export class GameManager extends Component {
     }
 
     private resetGame() {
-        for (const [playerID, player] of this.playersThisTurn) {
+        for (const [playerID, player] of this.players) {
             player.forEach(playerHand => {
                 playerHand.resetHand();   
             });
+            if (player.length > 1) {
+                player.pop();
+            }
         }
         this.playersThisTurn = new Map(this.players);
 
@@ -285,9 +331,11 @@ export class GameManager extends Component {
     private changeGameState(gameState: GameState) {
         this.gameState = gameState;
         EventManager.instance.gameEvents.emit(GameEvent.GAMESTATE_CHANGED, this.gameState);
+        console.log('Current gamestate: ' + this.gameState);
     }
 
     private startPhaseTimer() {
+        this.unscheduleAllCallbacks();
         this.scheduleOnce(() => {
             this.phaseTimeUp();
         }, this.phaseTimer);
@@ -295,18 +343,19 @@ export class GameManager extends Component {
     }
 
     private phaseTimeUp() {
-        console.log("Time up");
         switch (this.gameState) {
             case GameState.BetPhase:
                 break;
 
-            case GameState.InitialDeal:
+            case GameState.InitialDeal:    
+                break;
+
+            case GameState.InsuranceOffer:
+                this.insuranceResponse(false);
                 break;
 
             case GameState.PlayerTurn:
-                break;
-
-            case GameState.DealerTurn:
+                this.playerTurnEnd();
                 break;
 
             case GameState.GameEnd:
@@ -314,5 +363,19 @@ export class GameManager extends Component {
                 break;
         }
         EventManager.instance.gameEvents.emit(GameEvent.TIME_UP, this.phaseTimer);
+    }
+
+    private playerTurnEnd() {
+        EventManager.instance.gameEvents.emit(GameEvent.PLAYER_TURN_ENDED, this.currentPlayerHands);
+        if (this.currentPlayerID == this.myPlayerID) {
+            EventManager.instance.gameEvents.emit(GameEvent.LOCK_INPUT);
+        }
+        this.playersThisTurn.delete(this.currentPlayerID);
+        this.currentPlayerHands = this.getNextPlayerHands();
+        if (this.playersThisTurn.size <= 0) {
+            console.log('All players turn ended');
+            this.dealer.revealAll = true;
+            this.dealerPlay();
+        }
     }
 }

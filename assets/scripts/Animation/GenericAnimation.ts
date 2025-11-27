@@ -26,6 +26,8 @@ export class GenericAnimation extends Component {
 
     private originalPos: Vec3 = null!;
 
+    private looping = false;
+
     private isShown = false;
 
     protected onLoad(): void {
@@ -105,7 +107,9 @@ export class GenericAnimation extends Component {
                     .to(this.animationDuration, { position: new Vec3(0, -this.screenSize.height, 0) }, { easing: 'backIn' })
                     .call(() => {
                         onComplete?.();
-                        this.node.active = false;
+                        if (!this.looping) {
+                            this.node.active = false;
+                        }
                     })
                     .start();
 
@@ -117,7 +121,9 @@ export class GenericAnimation extends Component {
                     .to(this.animationDuration, { position: new Vec3(0, this.screenSize.height, 0) }, { easing: 'backIn' })
                     .call(() => {
                         onComplete?.();
-                        this.node.active = false;
+                        if (!this.looping) {
+                            this.node.active = false;
+                        }
                     })
                     .start();
 
@@ -129,7 +135,9 @@ export class GenericAnimation extends Component {
                     .to(this.animationDuration, { position: new Vec3(-this.screenSize.width, 0, 0) }, { easing: 'backIn' })
                     .call(() => {
                         onComplete?.();
-                        this.node.active = false;
+                        if (!this.looping) {
+                            this.node.active = false;
+                        }
                     })
                     .start();
 
@@ -141,7 +149,9 @@ export class GenericAnimation extends Component {
                     .to(this.animationDuration, { position: new Vec3(this.screenSize.width, 0, 0) }, { easing: 'backIn' })
                     .call(() => {
                         onComplete?.();
-                        this.node.active = false;
+                        if (!this.looping) {
+                            this.node.active = false;
+                        }
                     })
                     .start();
 
@@ -153,7 +163,9 @@ export class GenericAnimation extends Component {
                     .to(this.animationDuration, { scale: new Vec3(0, 0, 1) }, { easing: 'backIn' })
                     .call(() => {
                         onComplete?.();
-                        this.node.active = false;
+                        if (!this.looping) {
+                            this.node.active = false;
+                        }
                     })
                     .start();
 
@@ -166,11 +178,31 @@ export class GenericAnimation extends Component {
                     .to(this.animationDuration, { opacity: 0 }, { easing: 'backIn' })
                     .call(() => {
                         onComplete?.();
-                        this.node.active = false;
+                        if (!this.looping) {
+                            this.node.active = false;
+                        }
                     })
                     .start();
         }
         this.isShown = false;
+    }
+
+    public loopAnimation() {
+        this.looping = true;
+        const runCycle = () => {
+            if (!this.looping) return;
+            this.animateEntry(() => {
+                this.animateExit(() => {
+                    runCycle(); // restart cycle
+                });
+            });
+        };
+        runCycle();
+    }
+
+    public stopLoop() {
+        this.looping = false;
+        this.node.active = false;
     }
 
     public setEntryAnimation(animationType: AnimationType) {

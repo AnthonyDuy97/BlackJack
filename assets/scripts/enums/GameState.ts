@@ -4,8 +4,6 @@ export enum GameState {
     InsuranceOffer,
     PlayerTurn,
     PlayerTurnEnd,
-    OtherPlayerTurn,
-    OtherPlayerTurnEnd,
     DealerTurn,
     DealerTurnEnd,
     GameEnd

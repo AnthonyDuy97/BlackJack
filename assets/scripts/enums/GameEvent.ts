@@ -1,4 +1,6 @@
 export enum GameEvent {
+    PLAYER_TURN_CHANGED = 'player-turn-change',
+    PLAYER_TURN_ENDED = 'player-turn-end',
     GAMESTATE_CHANGED = 'game-state-change',
     START_TIMER = 'start-timer',
     TIME_UP = 'time-up',
