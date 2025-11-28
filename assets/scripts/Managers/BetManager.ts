@@ -97,15 +97,20 @@ export class BetManager extends Component {
                     break;
                                 
                 case GameResult.Win:
-                    multiplier += 1;
+                    if (hand.isDoublingDown()) {
+                        multiplier += 2;
+                    } else {
+                        multiplier += 1;
+                    }
                     break;
 
                 case GameResult.Lose:
-                    multiplier += -1;
+                    if (hand.isDoublingDown()) {
+                        multiplier -= 2;
+                    } else {
+                        multiplier -= 1;
+                    }
                     break;
-            }
-            if (hand.isDoublingDown()) {
-                multiplier *= 2;
             }
             totalPayout += this.currentBet * multiplier;
         });

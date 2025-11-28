@@ -9896,7 +9896,7 @@
         "__id__": 143
       },
       {
-        "__id__": 143
+        "__id__": 160
       }
     ],
     "resultSprites": [
@@ -10506,6 +10506,7 @@
     "avatarSprite": {
       "__id__": 113
     },
+    "playerName": null,
     "playerID": 1,
     "cardPrefab": {
       "__uuid__": "9a36127a-c635-4c04-a0a8-6cc836be5d8a",
@@ -10582,6 +10583,7 @@
     "avatarSprite": {
       "__id__": 128
     },
+    "playerName": null,
     "playerID": 3,
     "cardPrefab": {
       "__uuid__": "9a36127a-c635-4c04-a0a8-6cc836be5d8a",

@@ -141,14 +141,17 @@ export class GameManager extends Component {
             this.checkForInsurance();
         }
 
-        EventManager.instance.gameEvents.emit(GameEvent.UNLOCK_INPUT);
         if (this.gameState === GameState.PlayerTurn) {
-            if (this.currentPlayerID == this.myPlayerID && this.currentPlayerHands[this.currentHandIndex].isBusted()) {
-                if ((this.currentHandIndex + 1) == this.currentPlayerHands.length) {
-                    this.playerTurnEnd();
-                } else {
-                    this.currentHandIndex++;
-                    EventManager.instance.gameEvents.emit(GameEvent.CHANGE_HAND, this.currentHandIndex);
+            if (this.currentPlayerID == this.myPlayerID) {
+                EventManager.instance.gameEvents.emit(GameEvent.UNLOCK_INPUT);
+                if (this.currentPlayerHands[this.currentHandIndex].isBusted()) {
+                    if ((this.currentHandIndex + 1) == this.currentPlayerHands.length) {
+                        this.playerTurnEnd();
+                        EventManager.instance.gameEvents.emit(GameEvent.LOCK_INPUT);
+                    } else {
+                        this.currentHandIndex++;
+                        EventManager.instance.gameEvents.emit(GameEvent.CHANGE_HAND, this.currentHandIndex);
+                    }
                 }
             }
         }
@@ -200,14 +203,14 @@ export class GameManager extends Component {
             this.currentPlayerHands[this.currentHandIndex].addCard(cardData);
             EventManager.instance.gameEvents.emit(GameEvent.DEAL_CARD, this.currentPlayerHands[this.currentHandIndex]);
         }
+        this.currentPlayerHands[this.currentHandIndex].doublingDown();
+
         if ((this.currentHandIndex + 1) == this.currentPlayerHands.length) {
             this.playerTurnEnd();
         } else {
             this.currentHandIndex++;
             EventManager.instance.gameEvents.emit(GameEvent.CHANGE_HAND, this.currentHandIndex);
         }
-
-        this.currentPlayerHands[this.currentHandIndex].doublingDown();
     }
 
     public playerSplit() {
@@ -291,6 +294,7 @@ export class GameManager extends Component {
             }
             results.push(result);
         });
+        EventManager.instance.gameEvents.emit(GameEvent.UNLOCK_INPUT);
         EventManager.instance.gameEvents.emit(GameEvent.GAME_ENDED, results, currentPlayer, this.dealer);
     }
 
@@ -372,6 +376,9 @@ export class GameManager extends Component {
         }
         this.playersThisTurn.delete(this.currentPlayerID);
         this.currentPlayerHands = this.getNextPlayerHands();
+        if (this.currentPlayerID == this.myPlayerID) {
+            EventManager.instance.gameEvents.emit(GameEvent.UNLOCK_INPUT);
+        }
         if (this.playersThisTurn.size <= 0) {
             console.log('All players turn ended');
             this.dealer.revealAll = true;
