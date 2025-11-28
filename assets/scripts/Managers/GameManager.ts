@@ -132,7 +132,7 @@ export class GameManager extends Component {
         // Check for immediate blackjack
         if (this.currentPlayerHands[this.currentHandIndex].hasBlackjack() || this.dealer.hasBlackjack()) {
             this.dealer.revealAll = true;
-            this.endGame();
+            this.playerTurnEnd();
         }
     }
     

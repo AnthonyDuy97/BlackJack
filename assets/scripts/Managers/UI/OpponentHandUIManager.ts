@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Prefab, instantiate, CCInteger, tween, Sprite, SpriteFrame, Layout, UIOpacity } from 'cc';
+import { _decorator, Component, Node, Prefab, instantiate, CCInteger, tween, Sprite, SpriteFrame, Layout, UIOpacity, Label } from 'cc';
 import { EventManager } from '../EventManager';
 import { GameEvent } from '../../enums/GameEvent';
 import { Card } from '../../Card';
@@ -8,8 +8,6 @@ import { Player } from '../../Player';
 import { Dealer } from '../../Dealer';
 
 import { SFXID } from '../../AudioSystem/SFXEnums';
-
-import { GenericAnimation } from '../../Animation/GenericAnimation';
 
 const { ccclass, property } = _decorator;
 
@@ -22,6 +20,9 @@ export class OpponentHandUIManager extends Component {
 
     @property(Sprite)
     private avatarSprite: Sprite = null!;
+
+    @property(Label)
+    private playerName: Label = null!;
 
     @property(CCInteger)
     private playerID: number;
@@ -53,9 +54,10 @@ export class OpponentHandUIManager extends Component {
         this.resetUI();
     }
 
-    private setupPlayer(playerID: number, avatar: SpriteFrame) {
+    private setupPlayer(playerID: number, avatar: SpriteFrame, name: string) {
         this.playerID = playerID;
         this.avatarSprite.spriteFrame = avatar;
+        this.playerName.string = name;
     }
 
     private onPlayerTurnChange(playerID: number) {
