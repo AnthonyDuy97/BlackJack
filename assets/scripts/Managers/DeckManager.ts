@@ -51,7 +51,6 @@ export class DeckManager extends Component {
         Promise.all(promises).then(() => {
             console.log('All sprites loaded, starting game...');
             this.cardDeck = new Deck(this.loadedCardData, 2);
-            EventManager.instance.gameEvents.emit(GameEvent.DECK_LOADED);
         }).catch(err => {
             console.error('Error loading deck:', err);
         });
@@ -92,7 +91,6 @@ export class DeckManager extends Component {
         })
         CardAsset.backSpriteFrame = atlas.getSpriteFrame('BACK_1');
         this.cardDeck = new Deck(this.loadedCardData, 2);
-        EventManager.instance.gameEvents.emit(GameEvent.DECK_LOADED);
     }
 
     public dealCard(): CardData | null {
@@ -106,7 +104,6 @@ export class DeckManager extends Component {
         if (this.loadedCardData.length > 0) {
             console.log('Resetting deck...');
             this.cardDeck.reset(this.loadedCardData, 2);
-            EventManager.instance.gameEvents.emit(GameEvent.DECK_LOADED);
         }
     }
 }

@@ -8,7 +8,6 @@ export enum GameEvent {
     CHIP_SELECTED = 'chip-selected',
     ADD_CHIP_UI = 'add-chip-ui',
     UPDATE_BET_VALUE = 'add-bet-value',
-    DECK_LOADED = 'deck-loaded',
     DEAL_CARD = 'deal-card',
     BET_PLACED = "bet-placed",
     ANIMATION_FINISHED = 'animation-finished',

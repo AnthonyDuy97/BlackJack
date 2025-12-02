@@ -53,7 +53,6 @@ export class Card extends Component {
     public async flipCard() {
         // Flip from front to back
         const cardScale = this.node.scale.clone();
-        console.log('Flipping card:', this.getName(), 'Is face down:', this.cardData.isFaceDown);
         EventManager.instance.gameEvents.emit(GameEvent.PLAY_SFX, SFXID.CardFlip, this);
         await new Promise<void>((resolve) => {
             tween(this.node)
@@ -69,7 +68,6 @@ export class Card extends Component {
                 .to(0.2, { scale: cardScale}) // Expand back out
                 .call(() => {
                     this.isFaceDown = !this.isFaceDown;
-                    console.log('Card flipped:', this.getName(), 'Is face down now:', this.isFaceDown);
                 })
                 .call(resolve)
                 .start();

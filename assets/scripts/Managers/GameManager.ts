@@ -35,7 +35,6 @@ export class GameManager extends Component {
     private phaseTimer: number = 10;
 
     start() {
-        EventManager.instance.gameEvents.on(GameEvent.DECK_LOADED, this.onDeckLoaded, this);
         EventManager.instance.gameEvents.on(GameEvent.ANIMATION_FINISHED, this.onAnimationFinished, this);
         EventManager.instance.gameEvents.emit(GameEvent.GAMESTATE_CHANGED, this.gameState);
 
@@ -50,13 +49,7 @@ export class GameManager extends Component {
     }
 
     protected onDestroy(): void {
-        EventManager.instance.gameEvents.off(GameEvent.DECK_LOADED, this.onDeckLoaded, this);
         EventManager.instance.gameEvents.off(GameEvent.ANIMATION_FINISHED, this.onAnimationFinished, this);
-    }
-
-    private onDeckLoaded(deck: Deck) {
-        // Start the game logic here, e.g., deal initial cards
-        console.log('Game started with deck:', deck);
     }
 
     private getNextPlayerHands(): Player[] {
@@ -181,7 +174,6 @@ export class GameManager extends Component {
         const cardData = this.deckManager.dealCard();
         if (cardData) {
             this.currentPlayerHands[this.currentHandIndex].addCard(cardData);
-            // console.log('Hand ' + this.currentHandIndex + ' count: ' + this.currentPlayerHands[this.currentHandIndex].getHand().length);
             EventManager.instance.gameEvents.emit(GameEvent.DEAL_CARD, this.currentPlayerHands[this.currentHandIndex]);
         }
     }
@@ -253,7 +245,6 @@ export class GameManager extends Component {
                 EventManager.instance.gameEvents.emit(GameEvent.DEAL_CARD, this.dealer);
             }
         }
-        console.log('Dealer Hand now:', this.dealer.getHand());
         this.endGame();
     }
 

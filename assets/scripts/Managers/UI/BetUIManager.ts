@@ -165,7 +165,6 @@ export class BetUIManager extends Component {
     private resetPot() {
         this.potArea.removeAllChildren();
         this.potArea.active = true;
-        console.log('Pot Original Pos: ' +  this.potOriginalPos);
         this.potArea.setPosition(this.potOriginalPos);
         this.chipStacks.clear();
         this.chipStackPositions.clear();

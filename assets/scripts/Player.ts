@@ -31,7 +31,7 @@ export class Player extends Participant {
     }
 
     public canSplit(): boolean {
-        return true;
+        // return true;
         if (this.hand.length === 2 && this.hand[0].rank === this.hand[1].rank) {
             return true;
         }
