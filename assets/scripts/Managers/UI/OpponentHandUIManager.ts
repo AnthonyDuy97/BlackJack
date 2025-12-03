@@ -7,6 +7,8 @@ import { Participant } from '../../Participant';
 import { Player } from '../../Player';
 import { Dealer } from '../../Dealer';
 
+import { PlayerData } from '../../PlayerData';
+
 import { SFXID } from '../../AudioSystem/SFXEnums';
 
 const { ccclass, property } = _decorator;
@@ -20,6 +22,9 @@ export class OpponentHandUIManager extends Component {
 
     @property(Sprite)
     private avatarSprite: Sprite = null!;
+
+    @property(Sprite)
+    private timerSprite: Sprite = null!;
 
     @property(Label)
     private playerName: Label = null!;
@@ -40,6 +45,7 @@ export class OpponentHandUIManager extends Component {
 
     start() {
         EventManager.instance.gameEvents.on(GameEvent.PLAYER_TURN_CHANGED, this.onPlayerTurnChange, this);
+        EventManager.instance.gameEvents.on(GameEvent.START_TIMER, this.onTimerStart, this);
         EventManager.instance.gameEvents.on(GameEvent.PLAYER_TURN_ENDED, this.onPlayerTurnEnd, this);
         EventManager.instance.gameEvents.on(GameEvent.GAME_STARTED, this.onGameStarted, this);
         EventManager.instance.gameEvents.on(GameEvent.GAME_ENDED, this.onGameEnded, this);
@@ -50,10 +56,10 @@ export class OpponentHandUIManager extends Component {
         this.resetUI();
     }
 
-    private setupPlayer(playerID: number, avatar: SpriteFrame, name: string) {
-        this.playerID = playerID;
-        this.avatarSprite.spriteFrame = avatar;
-        this.playerName.string = name;
+    private setupPlayer(playerData: PlayerData) {
+        this.playerID = playerData.getID();
+        this.avatarSprite.spriteFrame = playerData.getAvatar();
+        this.playerName.string = playerData.getName();
     }
 
     private onPlayerTurnChange(playerID: number) {
@@ -102,10 +108,12 @@ export class OpponentHandUIManager extends Component {
         this.avatarBorder.active = false;
 
         this.playerHandCount = 0;
+        this.timerSprite.fillRange = 0;
     }
 
     protected onDestroy(): void {
         EventManager.instance.gameEvents.off(GameEvent.PLAYER_TURN_CHANGED, this.onPlayerTurnChange, this);
+        EventManager.instance.gameEvents.off(GameEvent.START_TIMER, this.onTimerStart, this);
         EventManager.instance.gameEvents.off(GameEvent.PLAYER_TURN_ENDED, this.onPlayerTurnEnd, this);
         EventManager.instance.gameEvents.off(GameEvent.GAME_STARTED, this.onGameStarted, this);
         EventManager.instance.gameEvents.off(GameEvent.GAME_ENDED, this.onGameEnded, this);
@@ -207,5 +215,16 @@ export class OpponentHandUIManager extends Component {
         playerHands.forEach(playerHand => {
             this.addCardToParticipant(playerHand);
         });
+    }
+
+    private onTimerStart(startTime: number) {
+        if (!this.isActive) return;
+        this.timerSprite.fillRange = 0;
+        tween(this.timerSprite)
+            .to(startTime, { fillRange: 1 })
+            .call(() => {
+                console.log("Sprite fill complete!");
+            })
+            .start();
     }
 }

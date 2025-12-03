@@ -1,4 +1,5 @@
 export enum GameEvent {
+    LOADING_PROGRESS = 'loading-prgress',
     PLAYER_TURN_CHANGED = 'player-turn-change',
     PLAYER_TURN_ENDED = 'player-turn-end',
     GAMESTATE_CHANGED = 'game-state-change',

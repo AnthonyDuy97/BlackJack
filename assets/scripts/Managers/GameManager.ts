@@ -38,9 +38,9 @@ export class GameManager extends Component {
         EventManager.instance.gameEvents.on(GameEvent.ANIMATION_FINISHED, this.onAnimationFinished, this);
         EventManager.instance.gameEvents.emit(GameEvent.GAMESTATE_CHANGED, this.gameState);
 
-        // this.playerDatas.push(new PlayerData(1, 1000));
-        this.playerDatas.push(new PlayerData(this.myPlayerID, 1000));
-        // this.playerDatas.push(new PlayerData(3, 1000));
+        this.playerDatas.push(new PlayerData(1, 1000, null, "Player 1"));
+        this.playerDatas.push(new PlayerData(this.myPlayerID, 1000, null, "Player " + this.myPlayerID));
+        this.playerDatas.push(new PlayerData(3, 1000, null, "Player 3"));
         this.playerDatas.forEach(playerData => {
             const player = [new Player(0, playerData.getID())]; 
             this.players.set(playerData.getID(), player);

@@ -2,6 +2,9 @@
 import { _decorator, Component } from 'cc';
 const { ccclass, property } = _decorator;
 
+import { NetworkEvent } from '../enums/NetworkEvent';
+import { EventManager } from '../Managers/EventManager';
+
 export class Code {
     static LOGIN = 1;
     static JOIN_ROOM = 3;
@@ -24,7 +27,7 @@ export class NetworkManager extends Component {
     private _socket: WebSocket | null = null;
     private _state: WSState = WSState.DISCONNECTED;
 
-    private _listeners: Map<string, Function[]> = new Map();
+    // private _listeners: Map<string, Function[]> = new Map();
 
     private _zone = "Slot1Zone";
     private _plugin = "BNRPlugin";
@@ -162,15 +165,18 @@ export class NetworkManager extends Component {
     }
 
     public on(event: string, cb: Function) {
-        if (!this._listeners.has(event)) {
-            this._listeners.set(event, []);
-        }
-        this._listeners.get(event)!.push(cb);
+        // if (!this._listeners.has(event)) {
+        //     this._listeners.set(event, []);
+        // }
+        // this._listeners.get(event)!.push(cb);
+        if (!Object.keys(NetworkEvent).some(k => (NetworkEvent as any)[k] === event)) return;
+        EventManager.instance.networkEvents.on(event, cb(), this);
     }
 
     private emit(event: string, data?: any) {
-        if (!this._listeners.has(event)) return;
-        this._listeners.get(event)!.forEach(cb => cb(data));
+        // if (!this._listeners.has(event)) return;
+        EventManager.instance.networkEvents.emit(event, data);
+        // this._listeners.get(event)!.forEach(cb => cb(data));
     }
 
     private initialize() {

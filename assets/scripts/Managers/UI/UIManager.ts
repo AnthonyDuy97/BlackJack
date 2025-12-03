@@ -1,4 +1,4 @@
-import { _decorator, Button, Component, Node, Sprite, Label } from 'cc';
+import { _decorator, Button, Component, Node, Sprite, Label, ProgressBar, tween, Tween, Game } from 'cc';
 import { EventManager } from '../EventManager';
 import { GameEvent } from '../../enums/GameEvent';
 
@@ -20,6 +20,15 @@ const { ccclass, property } = _decorator;
 
 @ccclass('UIManager')
 export class UIManager extends Component {
+
+    @property(Node)
+    private loadingScreen: Node = null!;
+
+    @property(ProgressBar)
+    private loadingBar: ProgressBar = null!;
+
+    private progressTween: Tween<ProgressBar> = null!;
+
     @property(Sprite)
     private stateSprite: Sprite = null!;
 
@@ -58,6 +67,7 @@ export class UIManager extends Component {
     private playerHandCount = 0;
 
     start() {
+        EventManager.instance.gameEvents.on(GameEvent.LOADING_PROGRESS, this.onProgress, this);
         EventManager.instance.gameEvents.on(GameEvent.START_TIMER, this.onTimerStart, this);
         EventManager.instance.gameEvents.on(GameEvent.ADD_CHIP_UI, this.onChipAdd, this);
         EventManager.instance.gameEvents.on(GameEvent.GAME_STARTED, this.onGameStarted, this);
@@ -93,7 +103,8 @@ export class UIManager extends Component {
     }
 
     protected onDestroy(): void {
-        EventManager.instance.gameEvents.on(GameEvent.START_TIMER, this.onTimerStart, this);
+        EventManager.instance.gameEvents.off(GameEvent.LOADING_PROGRESS, this.onProgress, this);
+        EventManager.instance.gameEvents.off(GameEvent.START_TIMER, this.onTimerStart, this);
         EventManager.instance.gameEvents.off(GameEvent.ADD_CHIP_UI, this.onChipAdd, this);
         EventManager.instance.gameEvents.off(GameEvent.SPLIT_HAND, this.disableSplitButton, this);
         EventManager.instance.gameEvents.off(GameEvent.GAME_STARTED, this.onGameStarted, this);
@@ -227,6 +238,20 @@ export class UIManager extends Component {
 
     public toggleSFX() {
         EventManager.instance.gameEvents.emit(GameEvent.PLAY_SFX, SFXID.ButtonClick);
+    }
+
+    private onProgress(progressVal: number) {
+        if (this.progressTween) {
+            this.progressTween.stop();
+        }
+        this.progressTween = tween(this.loadingBar)
+            .to(3, { progress:  progressVal})
+            .call(() => {
+                if (progressVal >= 1) {
+                    this.loadingScreen.active = false;
+                }
+            })
+            .start();
     }
 }
 

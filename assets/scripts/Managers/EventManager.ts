@@ -11,11 +11,12 @@ export class EventManager extends Component {
     // Central event bus
     public readonly gameEvents: EventTarget;
     public readonly networkEvents: EventTarget;
-    public readonly sfxEvents: EventTarget;
+    // public readonly sfxEvents: EventTarget;
 
     private constructor() {
         super();
         this.gameEvents = new EventTarget();
+        this.networkEvents = new EventTarget();
     }
 
     public static get instance(): EventManager {

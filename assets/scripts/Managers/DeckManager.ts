@@ -81,6 +81,7 @@ export class DeckManager extends Component {
 
     async loadSpriteFromAtlas() {
         const atlas = await this.loadSpriteAtlas();
+        EventManager.instance.gameEvents.emit(GameEvent.LOADING_PROGRESS, 0.5);
         this.loadedCardData.forEach(card => {
             const frame = atlas.getSpriteFrame(card.sprite);
             if (frame) {
@@ -91,6 +92,7 @@ export class DeckManager extends Component {
         })
         CardAsset.backSpriteFrame = atlas.getSpriteFrame('BACK_1');
         this.cardDeck = new Deck(this.loadedCardData, 2);
+        EventManager.instance.gameEvents.emit(GameEvent.LOADING_PROGRESS, 1);
     }
 
     public dealCard(): CardData | null {
